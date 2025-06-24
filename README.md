@@ -1,5 +1,7 @@
 ## Horizon application monitoring separate laravel application queue workers
 
+A boilerplate application to test horizon monitoring for multiple applications. In example we have 2 applications cms-app and website-app. Cms app has 2 workers. One is listening to main queue, another is listening for long running jobs queue. Website has only single worker with single queue.
+
 copy environments from .env.example to .env
 
 For horizon auth you need to connect it with authentic and setup right environments

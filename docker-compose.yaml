@@ -1,0 +1,77 @@
+services:
+  redis:
+    image: redis:7
+    ports: ["6379:6379"]
+
+  horizon-monitor:
+    build: ./horizon-monitor
+    ports: ["8001:8000"]
+    depends_on: [redis]
+    env_file: ./horizon-monitor/.env
+    extra_hosts:
+      - "authentic.local:192.168.88.75"
+    volumes:
+      - ./horizon-monitor/.env:/app/.env
+      - ./horizon-monitor/app:/app/app
+      - ./horizon-monitor/config:/app/config
+      - ./horizon-monitor/routes:/app/routes
+      - ./horizon-monitor/database:/app/database
+      - ./horizon-monitor/resources:/app/resources
+
+  cms-worker:
+    build: ./cms-app
+    command: ["php", "/app/artisan", "horizon"]
+    env_file: ./cms-app/.env
+    environment:
+      - WORKER_QUEUE_NAME=cms-main
+    depends_on: [redis]
+    volumes:
+      - ./cms-app/app:/app/app
+      - ./cms-app/config:/app/config
+      - ./cms-app/routes:/app/routes
+
+  cms-worker-long:
+    build: ./cms-app
+    command: ["php", "/app/artisan", "horizon"]
+    env_file: ./cms-app/.env
+    environment:
+      - WORKER_QUEUE_NAME=cms-long
+    depends_on: [redis]
+    volumes:
+      - ./cms-app/app:/app/app
+      - ./cms-app/config:/app/config
+      - ./cms-app/routes:/app/routes
+
+  website-worker:
+    build: ./website-app
+    command: ["php", "/app/artisan", "horizon"]
+    env_file: ./website-app/.env
+    environment:
+      - WORKER_QUEUE_NAME=website-main
+    depends_on: [redis]
+    volumes:
+      - ./website-app/app:/app/app
+      - ./website-app/config:/app/config
+      - ./website-app/routes:/app/routes
+
+  cms-scheduler:
+    build: ./cms-app
+    volumes:
+      - ./cms-app/app:/app/app
+      - ./cms-app/config:/app/config
+      - ./cms-app/routes:/app/routes
+    env_file: ./cms-app/.env
+    command: ["php", "artisan", "schedule:work"]
+    depends_on: [redis]
+
+  website-scheduler:
+    build: ./website-app
+    volumes:
+      - ./website-app/app:/app/app
+      - ./website-app/config:/app/config
+      - ./website-app/routes:/app/routes
+    env_file: ./website-app/.env
+    command: ["php", "artisan", "schedule:work"]
+    depends_on: [redis]
+
+# docker run --rm -v $(pwd):/app -w /app composer require socialiteproviders/github

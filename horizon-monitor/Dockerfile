@@ -16,4 +16,4 @@ RUN composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-pc
 
 # tiny built-in HTTP server is fine for local use
 EXPOSE 8000
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+CMD ["sh", "-c", "php artisan migrate && php artisan serve --host=0.0.0.0 --port=8000"]
